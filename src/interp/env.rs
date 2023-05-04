@@ -12,19 +12,13 @@ pub struct Var {
 
 impl Var {
     pub fn new(val: Value, is_exp: bool) -> Var {
-        Var {
-            val,
-            is_exp,
-        }
+        Var { val, is_exp }
     }
 }
 
 impl From<Value> for Var {
     fn from(val: Value) -> Self {
-        Var {
-            val,
-            is_exp: false,
-        }
+        Var { val, is_exp: false }
     }
 }
 

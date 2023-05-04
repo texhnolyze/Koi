@@ -11,8 +11,8 @@ use os_pipe::{pipe, PipeReader, PipeWriter};
 
 use crate::ast::{Cmd, CmdOp, Expr};
 
-use super::Interpreter;
 use super::value::Value;
+use super::Interpreter;
 
 #[cfg(test)]
 mod test;
@@ -35,32 +35,26 @@ enum Process {
 impl Process {
     fn wait(&mut self) -> ExitStatus {
         match self {
-            Process::Std(either) => {
-                match either {
-                    Either::Left(_) => panic!("process not spawned"),
-                    Either::Right(child) => child.wait().unwrap(),
-                }
-            }
+            Process::Std(either) => match either {
+                Either::Left(_) => panic!("process not spawned"),
+                Either::Right(child) => child.wait().unwrap(),
+            },
             Process::Pipe { lhs, rhs } => {
                 lhs.wait();
                 rhs.wait()
             }
-            Process::Cond { handle, .. } => {
-                handle.take().unwrap().join().unwrap()
-            }
+            Process::Cond { handle, .. } => handle.take().unwrap().join().unwrap(),
         }
     }
 
     fn set_env(&mut self, env: OsEnv) {
         match self {
-            Process::Std(either) => {
-                match either {
-                    Either::Left(cmd) => {
-                        cmd.envs(env);
-                    }
-                    Either::Right(_) => panic!("process already spawned"),
+            Process::Std(either) => match either {
+                Either::Left(cmd) => {
+                    cmd.envs(env);
                 }
-            }
+                Either::Right(_) => panic!("process already spawned"),
+            },
             Process::Pipe { lhs, rhs } => {
                 lhs.set_env(env.clone());
                 rhs.set_env(env);
@@ -75,15 +69,13 @@ impl Process {
 
     fn spawn(&mut self) {
         match self {
-            Process::Std(either) => {
-                match either {
-                    Either::Left(cmd) => {
-                        let child = cmd.spawn().unwrap();
-                        *either = Either::Right(child);
-                    }
-                    Either::Right(_) => panic!("process already spawned"),
+            Process::Std(either) => match either {
+                Either::Left(cmd) => {
+                    let child = cmd.spawn().unwrap();
+                    *either = Either::Right(child);
                 }
-            }
+                Either::Right(_) => panic!("process already spawned"),
+            },
             Process::Pipe { lhs, rhs } => {
                 lhs.spawn();
                 rhs.spawn();
@@ -199,7 +191,7 @@ impl Interpreter {
                     CmdOp::OutPipe => (Stream::PipeWriter(w), Stream::Null),
                     CmdOp::ErrPipe => (Stream::Null, Stream::PipeWriter(w)),
                     CmdOp::AllPipe => (Stream::PipeWriter(w.try_clone().unwrap()), Stream::PipeWriter(w)),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
 
                 let lhs = self.build_cmd(*lhs, stdin, out, err);
@@ -224,7 +216,18 @@ impl Interpreter {
                     handle: None,
                 }
             }
-            Cmd::Op(lhs, op, rhs) if [CmdOp::OutWrite, CmdOp::ErrWrite, CmdOp::AllWrite, CmdOp::OutAppend, CmdOp::ErrAppend, CmdOp::AllAppend, CmdOp::Read].contains(&op) => {
+            Cmd::Op(lhs, op, rhs)
+                if [
+                    CmdOp::OutWrite,
+                    CmdOp::ErrWrite,
+                    CmdOp::AllWrite,
+                    CmdOp::OutAppend,
+                    CmdOp::ErrAppend,
+                    CmdOp::AllAppend,
+                    CmdOp::Read,
+                ]
+                .contains(&op) =>
+            {
                 let path = self.cmd_to_path(*rhs);
 
                 let mut file = File::options();
@@ -247,12 +250,12 @@ impl Interpreter {
                         stdout = Stream::File(file);
                         stderr = Stream::File(file_cloned);
                     }
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
 
                 self.build_cmd(*lhs, stdin, stdout, stderr)
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     }
 
@@ -293,11 +296,14 @@ impl Interpreter {
     }
 
     fn set_rc(&mut self, rc: &ExitStatus) {
-        self.get_env_mut().def("rc".to_string(), if let Some(rc) = rc.code() {
-            Value::Num(rc as f64)
-        } else {
-            Value::Nil
-        });
+        self.get_env_mut().def(
+            "rc".to_string(),
+            if let Some(rc) = rc.code() {
+                Value::Num(rc as f64)
+            } else {
+                Value::Nil
+            },
+        );
     }
 }
 

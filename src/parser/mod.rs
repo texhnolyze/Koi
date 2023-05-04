@@ -2,10 +2,10 @@ use crate::ast::{Prog, Stmt};
 use crate::lexer::Lexer;
 use crate::token::{Token, TokenKind};
 
-mod expr;
-mod stmt;
 mod cmd;
+mod expr;
 mod func;
+mod stmt;
 
 #[cfg(test)]
 mod test;
@@ -50,14 +50,21 @@ impl Parser {
 
     pub fn is_at_end(&mut self) -> bool {
         match self.lexer.peek() {
-            Some(Token { kind: TokenKind::Newline, .. }) if !self.is_multiline => true,
+            Some(Token {
+                kind: TokenKind::Newline,
+                ..
+            }) if !self.is_multiline => true,
             None => true,
             _ => false,
         }
     }
 
     pub fn must_identifier(&mut self) -> String {
-        if let Some(Token { kind: TokenKind::Identifier(name), .. }) = self.lexer.next() {
+        if let Some(Token {
+            kind: TokenKind::Identifier(name),
+            ..
+        }) = self.lexer.next()
+        {
             name
         } else {
             panic!("expected identifier");

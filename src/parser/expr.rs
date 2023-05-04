@@ -9,20 +9,45 @@ use super::Parser;
 impl Parser {
     pub fn parse_expr(&mut self, min_bp: u8) -> Expr {
         let mut lhs = match self.lexer.next() {
-            Some(Token { kind: TokenKind::Num(num), .. }) => Expr::Literal(Value::Num(num)),
-            Some(Token { kind: TokenKind::Identifier(name), .. }) => Expr::Get(name),
+            Some(Token {
+                kind: TokenKind::Num(num),
+                ..
+            }) => Expr::Literal(Value::Num(num)),
+            Some(Token {
+                kind: TokenKind::Identifier(name),
+                ..
+            }) => Expr::Get(name),
 
-            Some(t @ Token { kind: TokenKind::String { .. }, .. }) => self.continue_parse_string_expr(t),
+            Some(
+                t @ Token {
+                    kind: TokenKind::String { .. },
+                    ..
+                },
+            ) => self.continue_parse_string_expr(t),
 
-            Some(Token { kind: TokenKind::True, .. }) => Expr::Literal(Value::Bool(true)),
-            Some(Token { kind: TokenKind::False, .. }) => Expr::Literal(Value::Bool(false)),
+            Some(Token {
+                kind: TokenKind::True, ..
+            }) => Expr::Literal(Value::Bool(true)),
+            Some(Token {
+                kind: TokenKind::False, ..
+            }) => Expr::Literal(Value::Bool(false)),
 
-            Some(Token { kind: TokenKind::Nil, .. }) => Expr::Literal(Value::Nil),
+            Some(Token {
+                kind: TokenKind::Nil, ..
+            }) => Expr::Literal(Value::Nil),
 
-            Some(Token { kind: TokenKind::LeftBracket, .. }) => self.parse_vec_literal(),
-            Some(Token { kind: TokenKind::LeftBrace, .. }) => self.parse_dict_literal(),
+            Some(Token {
+                kind: TokenKind::LeftBracket,
+                ..
+            }) => self.parse_vec_literal(),
+            Some(Token {
+                kind: TokenKind::LeftBrace,
+                ..
+            }) => self.parse_dict_literal(),
 
-            Some(Token { kind: TokenKind::Fn, .. }) => self.parse_fn_lambda(),
+            Some(Token {
+                kind: TokenKind::Fn, ..
+            }) => self.parse_fn_lambda(),
 
             Some(t @ Token { .. }) if t.is_prefix_op() => {
                 let kind = t.kind;
@@ -34,22 +59,40 @@ impl Parser {
                 make_prefix_expr(&kind, rhs)
             }
 
-            Some(Token { kind: TokenKind::LeftParen, .. }) => {
+            Some(Token {
+                kind: TokenKind::LeftParen,
+                ..
+            }) => {
                 self.lexer.consume_whitespace(self.is_multiline);
                 let expr = self.parse_expr(0);
                 self.lexer.consume_whitespace(self.is_multiline);
 
-                if !matches!(self.lexer.next(), Some(Token { kind: TokenKind::RightParen, .. })) {
+                if !matches!(
+                    self.lexer.next(),
+                    Some(Token {
+                        kind: TokenKind::RightParen,
+                        ..
+                    })
+                ) {
                     panic!("expected right parenthesis");
                 }
 
                 expr
             }
 
-            Some(Token { kind: TokenKind::DollarLeftParen, .. }) => {
+            Some(Token {
+                kind: TokenKind::DollarLeftParen,
+                ..
+            }) => {
                 let cmd = self.parse_cmd(0);
 
-                if !matches!(self.lexer.next(), Some(Token { kind: TokenKind::RightParen, .. })) {
+                if !matches!(
+                    self.lexer.next(),
+                    Some(Token {
+                        kind: TokenKind::RightParen,
+                        ..
+                    })
+                ) {
                     panic!("expected right parenthesis");
                 }
 
@@ -66,11 +109,23 @@ impl Parser {
                 break;
             }
 
-            if matches!(self.lexer.peek(), Some(Token{kind: TokenKind::DotDot, ..})) {
+            if matches!(
+                self.lexer.peek(),
+                Some(Token {
+                    kind: TokenKind::DotDot,
+                    ..
+                })
+            ) {
                 self.lexer.next().unwrap();
 
                 self.lexer.consume_whitespace(self.is_multiline);
-                let inclusive = if matches!(self.lexer.peek(), Some(Token{kind: TokenKind::Equal, ..})) {
+                let inclusive = if matches!(
+                    self.lexer.peek(),
+                    Some(Token {
+                        kind: TokenKind::Equal,
+                        ..
+                    })
+                ) {
                     self.lexer.next().unwrap();
                     true
                 } else {
@@ -102,7 +157,13 @@ impl Parser {
                         let index = self.parse_expr(0);
                         self.lexer.consume_whitespace(self.is_multiline);
 
-                        if !matches!(self.lexer.next(), Some(Token { kind: TokenKind::RightBracket, .. })) {
+                        if !matches!(
+                            self.lexer.next(),
+                            Some(Token {
+                                kind: TokenKind::RightBracket,
+                                ..
+                            })
+                        ) {
                             panic!("expected right bracket");
                         }
 
@@ -114,7 +175,10 @@ impl Parser {
                     TokenKind::Dot => {
                         self.lexer.consume_whitespace(self.is_multiline);
                         let name = match self.lexer.next() {
-                            Some(Token { kind: TokenKind::Identifier(name), .. }) => name,
+                            Some(Token {
+                                kind: TokenKind::Identifier(name),
+                                ..
+                            }) => name,
                             _ => panic!("expected identifier"),
                         };
 
@@ -153,7 +217,13 @@ impl Parser {
 
     fn consume_comma(&mut self) {
         self.lexer.consume_whitespace(self.is_multiline);
-        if matches!(self.lexer.peek(), Some(Token{kind: TokenKind::Comma, ..})) {
+        if matches!(
+            self.lexer.peek(),
+            Some(Token {
+                kind: TokenKind::Comma,
+                ..
+            })
+        ) {
             self.lexer.next();
         }
     }
@@ -166,7 +236,13 @@ impl Parser {
         loop {
             self.lexer.consume_whitespace(self.is_multiline);
 
-            if matches!(self.lexer.peek(), Some(Token{kind: TokenKind::RightParen, ..})) {
+            if matches!(
+                self.lexer.peek(),
+                Some(Token {
+                    kind: TokenKind::RightParen,
+                    ..
+                })
+            ) {
                 self.lexer.next();
                 break;
             }
@@ -176,10 +252,7 @@ impl Parser {
             self.consume_comma();
         }
 
-        Expr::Call {
-            args,
-            func,
-        }
+        Expr::Call { args, func }
     }
 
     fn parse_vec_literal(&mut self) -> Expr {
@@ -188,7 +261,13 @@ impl Parser {
         loop {
             self.lexer.consume_whitespace(self.is_multiline);
 
-            if matches!(self.lexer.peek(), Some(Token{kind: TokenKind::RightBracket, ..})) {
+            if matches!(
+                self.lexer.peek(),
+                Some(Token {
+                    kind: TokenKind::RightBracket,
+                    ..
+                })
+            ) {
                 self.lexer.next();
                 break;
             }
@@ -207,20 +286,41 @@ impl Parser {
         loop {
             self.lexer.consume_whitespace(self.is_multiline);
 
-            if matches!(self.lexer.peek(), Some(Token{kind: TokenKind::RightBrace, ..})) {
+            if matches!(
+                self.lexer.peek(),
+                Some(Token {
+                    kind: TokenKind::RightBrace,
+                    ..
+                })
+            ) {
                 self.lexer.next();
                 break;
             }
 
             let k = match self.lexer.next() {
-                Some(Token { kind: TokenKind::String { value, does_interp }, .. }) if !does_interp => value,
-                Some(Token { kind: TokenKind::Identifier(name), .. }) => name,
-                Some(Token { kind: TokenKind::Num(num), .. }) => num.to_string(),
-                _ => panic!("bad dict key")
+                Some(Token {
+                    kind: TokenKind::String { value, does_interp },
+                    ..
+                }) if !does_interp => value,
+                Some(Token {
+                    kind: TokenKind::Identifier(name),
+                    ..
+                }) => name,
+                Some(Token {
+                    kind: TokenKind::Num(num),
+                    ..
+                }) => num.to_string(),
+                _ => panic!("bad dict key"),
             };
 
             self.lexer.consume_whitespace(self.is_multiline);
-            if !matches!(self.lexer.next(), Some(Token {kind: TokenKind::Colon, ..})) {
+            if !matches!(
+                self.lexer.next(),
+                Some(Token {
+                    kind: TokenKind::Colon,
+                    ..
+                })
+            ) {
                 panic!("expected colon");
             }
 
@@ -243,10 +343,22 @@ impl Parser {
 
     pub fn continue_parse_string_expr(&mut self, t: Token) -> Expr {
         match t {
-            Token { kind: TokenKind::String { value, does_interp: false }, .. } => {
-                Expr::Literal(Value::String(value))
-            }
-            Token { kind: TokenKind::String { value, does_interp: true }, .. } => {
+            Token {
+                kind:
+                    TokenKind::String {
+                        value,
+                        does_interp: false,
+                    },
+                ..
+            } => Expr::Literal(Value::String(value)),
+            Token {
+                kind:
+                    TokenKind::String {
+                        value,
+                        does_interp: true,
+                    },
+                ..
+            } => {
                 let mut strings = Vec::new();
                 let mut exprs = Vec::new();
 
@@ -257,7 +369,11 @@ impl Parser {
                     exprs.push(self.parse_expr(0));
                     self.lexer.consume_whitespace(self.is_multiline);
 
-                    if let Some(Token { kind: TokenKind::String { value, does_interp }, .. }) = self.lexer.next() {
+                    if let Some(Token {
+                        kind: TokenKind::String { value, does_interp },
+                        ..
+                    }) = self.lexer.next()
+                    {
                         strings.push(value);
 
                         if !does_interp {
@@ -270,7 +386,7 @@ impl Parser {
 
                 Expr::Interp { strings, exprs }
             }
-            _ => panic!("bad token")
+            _ => panic!("bad token"),
         }
     }
 }
@@ -281,7 +397,7 @@ fn make_prefix_expr(op: &TokenKind, rhs: Expr) -> Expr {
         TokenKind::Minus => Expr::Unary(UnaryOp::Neg, Box::new(rhs)),
         TokenKind::Bang => Expr::Unary(UnaryOp::Not, Box::new(rhs)),
 
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
 
@@ -335,10 +451,13 @@ fn make_infix_expr(lhs: Expr, op: &TokenKind, rhs: Expr) -> Expr {
             expr
         }
 
-        TokenKind::Equal |
-        TokenKind::PlusEqual | TokenKind::MinusEqual |
-        TokenKind::StarEqual | TokenKind::SlashEqual |
-        TokenKind::PercEqual | TokenKind::CaretEqual => {
+        TokenKind::Equal
+        | TokenKind::PlusEqual
+        | TokenKind::MinusEqual
+        | TokenKind::StarEqual
+        | TokenKind::SlashEqual
+        | TokenKind::PercEqual
+        | TokenKind::CaretEqual => {
             let rhs = if !matches!(*op, TokenKind::Equal) {
                 let op = match *op {
                     TokenKind::PlusEqual => BinaryOp::Sum,
@@ -347,7 +466,7 @@ fn make_infix_expr(lhs: Expr, op: &TokenKind, rhs: Expr) -> Expr {
                     TokenKind::SlashEqual => BinaryOp::Div,
                     TokenKind::PercEqual => BinaryOp::Mod,
                     TokenKind::CaretEqual => BinaryOp::Pow,
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
 
                 Box::new(Expr::Binary(lhs.clone(), op, rhs))
@@ -358,7 +477,7 @@ fn make_infix_expr(lhs: Expr, op: &TokenKind, rhs: Expr) -> Expr {
             match *lhs {
                 Expr::Get(name) => Expr::Set(name, rhs),
                 Expr::GetField { base, index } => Expr::SetField { base, index, expr: rhs },
-                _ => panic!("bad assignment target")
+                _ => panic!("bad assignment target"),
             }
         }
 

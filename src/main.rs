@@ -11,11 +11,11 @@ use itertools::Itertools;
 
 use crate::lexer::new as new_lexer;
 
-mod token;
-mod lexer;
 mod ast;
-mod parser;
 mod interp;
+mod lexer;
+mod parser;
+mod token;
 
 fn split_args() -> (Vec<String>, Vec<String>) {
     let args = env::args().collect_vec();
@@ -38,7 +38,7 @@ fn main() {
                 .value_name("PATH")
                 .index(1)
                 .takes_value(true)
-                .help("Path to source file.")
+                .help("Path to source file."),
         )
         .arg(
             Arg::with_name("stdin")
@@ -46,14 +46,14 @@ fn main() {
                 .long("stdin")
                 .takes_value(false)
                 .help("Read script from stdin.")
-                .conflicts_with("path")
+                .conflicts_with("path"),
         )
         .arg(
             Arg::with_name("fn")
                 .short("f")
                 .long("--fn")
                 .takes_value(true)
-                .help("Function to call.")
+                .help("Function to call."),
         )
         .get_matches_from(koi_args);
 
@@ -62,8 +62,9 @@ fn main() {
         io::stdin().read_to_string(&mut buffer).unwrap();
         buffer
     } else {
-        fs::read_to_string(matches.value_of("path").unwrap_or("Koifile"))
-            .expect("couldn't read the source file (if you didn't provide a path to a .koi file, then it defaults to ./Kofile")
+        fs::read_to_string(matches.value_of("path").unwrap_or("Koifile")).expect(
+            "couldn't read the source file (if you didn't provide a path to a .koi file, then it defaults to ./Kofile",
+        )
     };
 
     let lexer = new_lexer(source);
@@ -74,21 +75,18 @@ fn main() {
     let mut interpreter = interp::Interpreter::new();
     interpreter.set_args(script_args);
     if let Some(path) = matches.value_of("path") {
-        let mut import_root = std::fs::canonicalize(PathBuf::from(path))
-            .expect("couldn't set import root");
+        let mut import_root = std::fs::canonicalize(PathBuf::from(path)).expect("couldn't set import root");
         import_root.pop();
         interpreter.set_import_root(import_root);
     }
     interpreter.run(prog);
 
     if let Some(f) = matches.value_of("fn") {
-        use ast::{Stmt, Expr};
+        use ast::{Expr, Stmt};
 
-        interpreter.run(vec![
-            Stmt::Expr(Expr::Call {
-                func: Box::new(Expr::Get(f.to_string())),
-                args: vec![],
-            })
-        ]);
+        interpreter.run(vec![Stmt::Expr(Expr::Call {
+            func: Box::new(Expr::Get(f.to_string())),
+            args: vec![],
+        })]);
     }
 }

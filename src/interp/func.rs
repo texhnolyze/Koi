@@ -1,11 +1,11 @@
 use std::cell::RefCell;
-use std::fmt::{Debug, Formatter};
 use std::fmt;
+use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
 
 use crate::ast::Stmt;
-use crate::interp::{Interpreter, Value};
 use crate::interp::env::Env;
+use crate::interp::{Interpreter, Value};
 
 #[derive(Clone)]
 pub enum Func {

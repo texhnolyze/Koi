@@ -53,10 +53,12 @@ impl RawLexer {
             ':' => (TokenKind::Colon, 1),
             ';' => (TokenKind::Semicolon, 1),
 
-            '$' => if let Some('(') = self.char_at(1) {
-                (TokenKind::DollarLeftParen, 2)
-            } else {
-                (TokenKind::Dollar, 1)
+            '$' => {
+                if let Some('(') = self.char_at(1) {
+                    (TokenKind::DollarLeftParen, 2)
+                } else {
+                    (TokenKind::Dollar, 1)
+                }
             }
 
             ' ' | '\t' => {
@@ -109,8 +111,8 @@ impl RawLexer {
             '>' => match self.char_at(1) {
                 Some('>') => (TokenKind::GreatGreat, 2),
                 Some('=') => (TokenKind::GreatEqual, 2),
-                _ => (TokenKind::Great, 1)
-            }
+                _ => (TokenKind::Great, 1),
+            },
 
             '+' => match self.char_at(1) {
                 Some('=') => (TokenKind::PlusEqual, 2),
@@ -125,7 +127,7 @@ impl RawLexer {
                 Some('=') => (TokenKind::StarEqual, 2),
                 Some('>') => match self.char_at(2) {
                     Some('>') => (TokenKind::StarGreatGreat, 3),
-                    _ => (TokenKind::StarGreat, 2)
+                    _ => (TokenKind::StarGreat, 2),
                 },
                 Some('|') => (TokenKind::StarPipe, 2),
                 _ => (TokenKind::Star, 1),
@@ -153,10 +155,7 @@ impl RawLexer {
 
         self.cursor += length;
 
-        Token {
-            lexeme,
-            kind,
-        }
+        Token { lexeme, kind }
     }
 
     fn scan_number(&mut self) -> Token {
@@ -166,7 +165,10 @@ impl RawLexer {
             self.cursor += 1;
         }
 
-        if self.cursor < self.source.len() && self.source[self.cursor] == '.' && self.source[self.cursor+1].is_ascii_digit() {
+        if self.cursor < self.source.len()
+            && self.source[self.cursor] == '.'
+            && self.source[self.cursor + 1].is_ascii_digit()
+        {
             self.cursor += 1;
 
             while self.cursor < self.source.len() && self.source[self.cursor].is_ascii_digit() {
@@ -186,7 +188,9 @@ impl RawLexer {
     fn scan_word(&mut self) -> Token {
         let mut iter = self.source[self.cursor..].iter();
 
-        let word: String = iter.take_while_ref(|&&c| can_start_word(c) || c.is_ascii_digit()).collect();
+        let word: String = iter
+            .take_while_ref(|&&c| can_start_word(c) || c.is_ascii_digit())
+            .collect();
 
         let kw_kind = match word.as_ref() {
             "import" => Some(TokenKind::Import),
@@ -287,7 +291,7 @@ impl RawLexer {
 
                 match self.char_at(0) {
                     Some('}') => (),
-                    _ => panic!("expected closing brace at end of interpolated expression")
+                    _ => panic!("expected closing brace at end of interpolated expression"),
                 }
 
                 lexeme_start = self.cursor;
@@ -360,8 +364,13 @@ impl Iterator for RawLexer {
         };
 
         match token {
-            Some(Token { kind: TokenKind::Newline, .. }) => self.is_new_line = true,
-            Some(Token { kind: TokenKind::Space, .. }) => (),
+            Some(Token {
+                kind: TokenKind::Newline,
+                ..
+            }) => self.is_new_line = true,
+            Some(Token {
+                kind: TokenKind::Space, ..
+            }) => (),
             _ => self.is_new_line = false,
         }
 

@@ -36,7 +36,13 @@ impl Display for Value {
             }
             Value::Dict(dict) => {
                 let dict = RefCell::borrow(dict);
-                write!(f, "{{{}}}", dict.iter().map(|(k, v)| format!("{}: {}", k, v.to_string_quoted())).join(", "))
+                write!(
+                    f,
+                    "{{{}}}",
+                    dict.iter()
+                        .map(|(k, v)| format!("{}: {}", k, v.to_string_quoted()))
+                        .join(", ")
+                )
             }
             Value::Func(func) => write!(f, "{:?}", func),
             Value::Range(l, r) => write!(f, "{}..{}", l, r),
@@ -90,7 +96,7 @@ impl From<Value> for JSONValue {
 
                 JSONValue::Object(json_map)
             }
-            Value::Func(_) | Value::Range(_, _) => panic!("unserializable value")
+            Value::Func(_) | Value::Range(_, _) => panic!("unserializable value"),
         }
     }
 }
