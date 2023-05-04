@@ -3,16 +3,12 @@ use raw::RawLexer;
 use record::RecordingLexer;
 
 mod peek;
-mod record;
 mod raw;
+mod record;
 
 #[cfg(test)]
 mod test;
 
 pub fn new(source: String) -> Lexer {
-    Lexer::new(
-        RecordingLexer::new(
-            RawLexer::new(source)
-        )
-    )
+    Lexer::new(RecordingLexer::new(RawLexer::new(source)))
 }

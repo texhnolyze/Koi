@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use std::env as std_env;
 use std::fmt::Debug;
 use std::mem;
-use std::rc::Rc;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 pub use func::Func;
 pub use value::Value;
@@ -16,10 +16,10 @@ use crate::parser;
 
 mod cmd;
 mod env;
-mod value;
 mod func;
-mod native;
 mod method;
+mod native;
+mod value;
 
 #[cfg(test)]
 mod test;
@@ -63,33 +63,45 @@ impl Interpreter {
     fn init_native_funcs(&mut self) {
         use native::*;
 
-        self.get_env_mut().def("print".to_string(), Value::Func(Func::Native {
-            name: "print".to_string(),
-            params: None,
-            func: print,
-            receiver: None,
-        }));
+        self.get_env_mut().def(
+            "print".to_string(),
+            Value::Func(Func::Native {
+                name: "print".to_string(),
+                params: None,
+                func: print,
+                receiver: None,
+            }),
+        );
 
-        self.get_env_mut().def("input".to_string(), Value::Func(Func::Native {
-            name: "input".to_string(),
-            params: None,
-            func: input,
-            receiver: None,
-        }));
+        self.get_env_mut().def(
+            "input".to_string(),
+            Value::Func(Func::Native {
+                name: "input".to_string(),
+                params: None,
+                func: input,
+                receiver: None,
+            }),
+        );
 
-        self.get_env_mut().def("exit".to_string(), Value::Func(Func::Native {
-            name: "exit".to_string(),
-            params: Some(1),
-            func: exit,
-            receiver: None,
-        }));
+        self.get_env_mut().def(
+            "exit".to_string(),
+            Value::Func(Func::Native {
+                name: "exit".to_string(),
+                params: Some(1),
+                func: exit,
+                receiver: None,
+            }),
+        );
 
-        self.get_env_mut().def("glob".to_string(), Value::Func(Func::Native {
-            name: "glob".to_string(),
-            params: Some(1),
-            func: glob,
-            receiver: None,
-        }));
+        self.get_env_mut().def(
+            "glob".to_string(),
+            Value::Func(Func::Native {
+                name: "glob".to_string(),
+                params: Some(1),
+                func: glob,
+                receiver: None,
+            }),
+        );
     }
 
     pub fn set_import_root(&mut self, import_root: PathBuf) {
@@ -148,8 +160,7 @@ impl Interpreter {
                 let mut path = self.import_root.clone();
                 path.push(&base_path);
 
-                let source = std::fs::read_to_string(&path)
-                    .expect("reading imported file's content");
+                let source = std::fs::read_to_string(&path).expect("reading imported file's content");
                 let prog = parser::Parser::new(new_lexer(source)).parse();
 
                 path.pop();
@@ -180,7 +191,12 @@ impl Interpreter {
 
                 res?
             }
-            Stmt::For { lvar, rvar, iterated, each_do } => {
+            Stmt::For {
+                lvar,
+                rvar,
+                iterated,
+                each_do,
+            } => {
                 let iterated = self.eval(iterated);
 
                 match iterated {
@@ -245,7 +261,7 @@ impl Interpreter {
 
                         self.pop_env();
                     }
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
             Stmt::While { cond, then_do } => {
@@ -304,7 +320,10 @@ impl Interpreter {
                 Value::Vec(vec)
             }
             Expr::Dict(dict) => {
-                let dict = dict.into_iter().map(|(key, expr)| (key, self.eval(expr))).collect::<HashMap<String, Value>>();
+                let dict = dict
+                    .into_iter()
+                    .map(|(key, expr)| (key, self.eval(expr)))
+                    .collect::<HashMap<String, Value>>();
                 let dict = Rc::new(RefCell::new(dict));
                 Value::Dict(dict)
             }
@@ -337,7 +356,7 @@ impl Interpreter {
 
                         RefCell::borrow(&dict).get(&index).cloned()
                     }
-                    _ => None
+                    _ => None,
                 };
 
                 if let Some(val) = val {
@@ -404,44 +423,50 @@ impl Interpreter {
                     (Value::Num(l), Value::Num(r)) if l.trunc() == l && r.trunc() == r => {
                         Value::Range(l as usize, r as usize + if inclusive { 1 } else { 0 })
                     }
-                    _ => panic!("range must evaluate to integers")
+                    _ => panic!("range must evaluate to integers"),
                 }
             }
-            Expr::Binary(lhs, BinaryOp::Sum, rhs) => {
-                match (self.eval(*lhs), self.eval(*rhs)) {
-                    (Value::Num(lhs), Value::Num(rhs)) => Value::Num(lhs + rhs),
-                    (Value::String(lhs), Value::String(rhs)) => Value::String(lhs + &rhs),
-                    (Value::Vec(lhs), Value::Vec(rhs)) => {
-                        let lhs = RefCell::borrow(&lhs);
-                        let rhs = RefCell::borrow(&rhs);
+            Expr::Binary(lhs, BinaryOp::Sum, rhs) => match (self.eval(*lhs), self.eval(*rhs)) {
+                (Value::Num(lhs), Value::Num(rhs)) => Value::Num(lhs + rhs),
+                (Value::String(lhs), Value::String(rhs)) => Value::String(lhs + &rhs),
+                (Value::Vec(lhs), Value::Vec(rhs)) => {
+                    let lhs = RefCell::borrow(&lhs);
+                    let rhs = RefCell::borrow(&rhs);
 
-                        let mut res = Vec::new();
-                        res.append(&mut lhs.clone());
-                        res.append(&mut rhs.clone());
+                    let mut res = Vec::new();
+                    res.append(&mut lhs.clone());
+                    res.append(&mut rhs.clone());
 
-                        Value::Vec(Rc::new(RefCell::new(res)))
-                    }
-                    (Value::Dict(lhs), Value::Dict(rhs)) => {
-                        let lhs = RefCell::borrow(&lhs);
-                        let rhs = RefCell::borrow(&rhs);
-
-                        let mut res = HashMap::new();
-                        for (k, v) in lhs.clone().into_iter() {
-                            res.insert(k, v);
-                        }
-                        for (k, v) in rhs.clone().into_iter() {
-                            res.insert(k, v);
-                        }
-
-                        Value::Dict(Rc::new(RefCell::new(res)))
-                    }
-                    _ => panic!("invalid operands types for op {:?}", BinaryOp::Sum),
+                    Value::Vec(Rc::new(RefCell::new(res)))
                 }
-            }
-            Expr::Binary(lhs, op, rhs) if [
-                BinaryOp::Sub, BinaryOp::Mul, BinaryOp::Div,
-                BinaryOp::Mod, BinaryOp::Pow, BinaryOp::Less, BinaryOp::Great
-            ].contains(&op) => {
+                (Value::Dict(lhs), Value::Dict(rhs)) => {
+                    let lhs = RefCell::borrow(&lhs);
+                    let rhs = RefCell::borrow(&rhs);
+
+                    let mut res = HashMap::new();
+                    for (k, v) in lhs.clone().into_iter() {
+                        res.insert(k, v);
+                    }
+                    for (k, v) in rhs.clone().into_iter() {
+                        res.insert(k, v);
+                    }
+
+                    Value::Dict(Rc::new(RefCell::new(res)))
+                }
+                _ => panic!("invalid operands types for op {:?}", BinaryOp::Sum),
+            },
+            Expr::Binary(lhs, op, rhs)
+                if [
+                    BinaryOp::Sub,
+                    BinaryOp::Mul,
+                    BinaryOp::Div,
+                    BinaryOp::Mod,
+                    BinaryOp::Pow,
+                    BinaryOp::Less,
+                    BinaryOp::Great,
+                ]
+                .contains(&op) =>
+            {
                 let (lhs, rhs) = match (self.eval(*lhs), self.eval(*rhs)) {
                     (Value::Num(lhs), Value::Num(rhs)) => (lhs, rhs),
                     _ => panic!("invalid operands types for op {:?}", op),
@@ -498,9 +523,9 @@ impl Interpreter {
                     body,
                     captured_env: Some(Rc::clone(&self.env)),
                 }),
-                Func::Native { .. } => unreachable!()
-            }
-            _ => unreachable!()
+                Func::Native { .. } => unreachable!(),
+            },
+            _ => unreachable!(),
         }
     }
 
@@ -511,8 +536,17 @@ impl Interpreter {
         };
 
         match func {
-            Func::User { params, body, captured_env, .. } => {
-                assert_eq!(params.len(), args.len(), "number of arguments does not match number of parameters");
+            Func::User {
+                params,
+                body,
+                captured_env,
+                ..
+            } => {
+                assert_eq!(
+                    params.len(),
+                    args.len(),
+                    "number of arguments does not match number of parameters"
+                );
 
                 let func_env = Rc::new(RefCell::new(if let Some(captured_env) = captured_env {
                     Env::new_from(&captured_env)
@@ -536,13 +570,19 @@ impl Interpreter {
                     _ => Value::Nil,
                 }
             }
-            Func::Native { func, params, receiver, .. } => {
+            Func::Native {
+                func, params, receiver, ..
+            } => {
                 if let Some(receiver) = receiver {
                     args.insert(0, *receiver);
                 }
 
                 if let Some(params) = params {
-                    assert_eq!(params, args.len(), "number of arguments does not match number of parameters");
+                    assert_eq!(
+                        params,
+                        args.len(),
+                        "number of arguments does not match number of parameters"
+                    );
                 }
 
                 func(self, args)
@@ -551,9 +591,12 @@ impl Interpreter {
     }
 
     pub fn set_args(&mut self, args: Vec<String>) {
-        self.get_env_mut().def("args".to_string(), Value::Vec(Rc::new(RefCell::new(
-            args.into_iter().map(|s| Value::String(s)).collect()
-        ))));
+        self.get_env_mut().def(
+            "args".to_string(),
+            Value::Vec(Rc::new(RefCell::new(
+                args.into_iter().map(|s| Value::String(s)).collect(),
+            ))),
+        );
     }
 }
 

@@ -8,10 +8,7 @@ pub struct Token {
 pub enum TokenKind {
     Identifier(String),
     Num(f64),
-    String {
-        value: String,
-        does_interp: bool,
-    },
+    String { value: String, does_interp: bool },
 
     Import,
     For,
@@ -73,7 +70,6 @@ pub enum TokenKind {
     DollarLeftParen,
 
     // Commands related stuff ...
-
     Pipe,
     StarPipe,
     AmperPipe,
@@ -88,7 +84,6 @@ pub enum TokenKind {
     Semicolon,
 
     // ... until here
-
     Space,
     Newline,
 
