@@ -52,11 +52,7 @@ impl Display for Value {
 
 impl Value {
     pub fn is_truthy(&self) -> bool {
-        match self {
-            Value::Nil => false,
-            Value::Bool(false) => false,
-            _ => true,
-        }
+        !matches!(self, Value::Nil | Value::Bool(false))
     }
 
     pub fn to_string_quoted(&self) -> String {

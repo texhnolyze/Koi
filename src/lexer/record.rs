@@ -43,7 +43,7 @@ impl Iterator for RecordingLexer {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.is_playing_back {
-            if self.record.len() > 0 {
+            if !self.record.is_empty() {
                 let (token, is_new_line) = self.record.remove(0);
                 self.is_new_line = is_new_line;
                 return Some(token);

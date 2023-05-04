@@ -90,10 +90,10 @@ impl Parser {
                     break;
                 }
 
-                if {
+                let res = {
                     let t = self.lexer.peek().unwrap();
                     t.is_cmd_op() || [TokenKind::Space, TokenKind::Newline, TokenKind::RightParen].contains(&t.kind)
-                } {
+                }; if res {
                     break;
                 }
 
@@ -128,14 +128,14 @@ impl Parser {
                 exprs.push(expr);
             }
 
-            if exprs.len() > 0 {
+            if !exprs.is_empty() {
                 segments.push(exprs);
             } else {
                 break;
             }
         }
 
-        if segments.len() == 0 {
+        if segments.is_empty() {
             panic!("empty command");
         }
 

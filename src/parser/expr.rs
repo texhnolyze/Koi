@@ -194,7 +194,7 @@ impl Parser {
                 continue;
             }
 
-            if let Some((l_bp, r_bp)) = infix_binding_power(&op) {
+            if let Some((l_bp, r_bp)) = infix_binding_power(op) {
                 if l_bp < min_bp {
                     break;
                 }
@@ -439,7 +439,7 @@ fn make_infix_expr(lhs: Expr, op: &TokenKind, rhs: Expr) -> Expr {
 
             if matches!(op, TokenKind::GreatEqual | TokenKind::LessEqual) {
                 let lhs = lhs.clone();
-                let rhs = rhs.clone();
+                let rhs = rhs;
 
                 expr = Expr::Binary(
                     Box::new(expr),

@@ -49,24 +49,20 @@ impl Env {
     pub fn get(&self, name: &str) -> Value {
         if let Some(val) = self.map.get(name) {
             val.val.clone()
+        } else if let Some(parent) = &self.parent {
+            RefCell::borrow(parent).get(name)
         } else {
-            if let Some(parent) = &self.parent {
-                RefCell::borrow(parent).get(name)
-            } else {
-                Value::Nil
-            }
+            Value::Nil
         }
     }
 
     pub fn put(&mut self, name: &str, new_val: Value) {
         if let Some(val) = self.map.get_mut(name) {
             val.val = new_val
+        } else if let Some(parent) = &mut self.parent {
+            RefCell::borrow_mut(parent).put(name, new_val)
         } else {
-            if let Some(parent) = &mut self.parent {
-                RefCell::borrow_mut(parent).put(name, new_val)
-            } else {
-                panic!("undefined variable");
-            }
+            panic!("undefined variable");
         }
     }
 
@@ -88,5 +84,11 @@ impl Env {
         }
 
         os_env
+    }
+}
+
+impl Default for Env {
+    fn default() -> Self {
+        Self::new()
     }
 }

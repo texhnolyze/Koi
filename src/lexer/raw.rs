@@ -38,7 +38,7 @@ impl RawLexer {
     }
 
     fn make_lexeme(&self, from: usize, to: usize) -> String {
-        (&self.source[from..to]).iter().collect()
+        self.source[from..to].iter().collect()
     }
 
     fn scan_symbol(&mut self) -> Token {
@@ -63,11 +63,8 @@ impl RawLexer {
 
             ' ' | '\t' => {
                 let mut length = 1;
-                loop {
-                    match self.char_at(length) {
-                        Some(' ') | Some('\t') => length += 1,
-                        _ => break,
-                    }
+                while let Some(' ') | Some('\t') = self.char_at(length) {
+                    length += 1
                 }
                 (TokenKind::Space, length)
             }
@@ -214,14 +211,11 @@ impl RawLexer {
         self.cursor += word.len();
 
         if let Some(kind) = kw_kind {
-            Token {
-                lexeme: word.clone(),
-                kind,
-            }
+            Token { lexeme: word, kind }
         } else {
             Token {
                 lexeme: word.clone(),
-                kind: TokenKind::Identifier(word.clone()),
+                kind: TokenKind::Identifier(word),
             }
         }
     }
