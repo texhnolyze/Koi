@@ -129,14 +129,14 @@ impl Parser {
                 exprs.push(expr);
             }
 
-            if exprs.len() > 0 {
+            if !exprs.is_empty() {
                 segments.push(exprs);
             } else {
                 break;
             }
         }
 
-        if segments.len() == 0 {
+        if segments.is_empty() {
             panic!("empty command");
         }
 

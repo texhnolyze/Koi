@@ -125,7 +125,7 @@ fn scans_string_literal_with_escape_chars() {
 #[test]
 fn scans_number_literals() {
     assert_eq!(
-        scan("12 3.14 .5"),
+        scan("12 3.15 .5"),
         vec![
             Token {
                 kind: TokenKind::Num(12.0),
@@ -136,8 +136,8 @@ fn scans_number_literals() {
                 lexeme: " ".to_owned(),
             },
             Token {
-                kind: TokenKind::Num(3.14),
-                lexeme: "3.14".to_owned(),
+                kind: TokenKind::Num(3.15),
+                lexeme: "3.15".to_owned(),
             },
             Token {
                 kind: TokenKind::Space,
@@ -431,7 +431,7 @@ fn records_no_playback() {
 fn newline_while_peeking() {
     let mut lexer = make_lexer("+\n-");
 
-    assert_eq!(lexer.is_new_line, true);
+    assert!(lexer.is_new_line);
     assert_eq!(
         lexer.peek(),
         Some(&Token {
@@ -439,7 +439,7 @@ fn newline_while_peeking() {
             lexeme: "+".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, true);
+    assert!(lexer.is_new_line);
     assert_eq!(
         lexer.next(),
         Some(Token {
@@ -447,7 +447,7 @@ fn newline_while_peeking() {
             lexeme: "+".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, false);
+    assert!(!lexer.is_new_line);
     assert_eq!(
         lexer.peek(),
         Some(&Token {
@@ -455,7 +455,7 @@ fn newline_while_peeking() {
             lexeme: "\n".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, false);
+    assert!(!lexer.is_new_line);
     assert_eq!(
         lexer.next(),
         Some(Token {
@@ -463,7 +463,7 @@ fn newline_while_peeking() {
             lexeme: "\n".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, true);
+    assert!(lexer.is_new_line);
     assert_eq!(
         lexer.peek(),
         Some(&Token {
@@ -471,7 +471,7 @@ fn newline_while_peeking() {
             lexeme: "-".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, true);
+    assert!(lexer.is_new_line);
     assert_eq!(
         lexer.next(),
         Some(Token {
@@ -479,7 +479,7 @@ fn newline_while_peeking() {
             lexeme: "-".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, false);
+    assert!(!lexer.is_new_line);
     assert_eq!(lexer.next(), None);
 }
 
@@ -513,7 +513,7 @@ fn newline_while_recording() {
 
     lexer.stop_recording(true);
 
-    assert_eq!(lexer.is_new_line, true);
+    assert!(lexer.is_new_line);
     assert_eq!(
         lexer.next(),
         Some(Token {
@@ -521,7 +521,7 @@ fn newline_while_recording() {
             lexeme: "+".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, false);
+    assert!(!lexer.is_new_line);
     assert_eq!(
         lexer.next(),
         Some(Token {
@@ -529,7 +529,7 @@ fn newline_while_recording() {
             lexeme: "-".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, false);
+    assert!(!lexer.is_new_line);
     assert_eq!(
         lexer.next(),
         Some(Token {
@@ -537,7 +537,7 @@ fn newline_while_recording() {
             lexeme: "\n".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, true);
+    assert!(lexer.is_new_line);
     assert_eq!(
         lexer.next(),
         Some(Token {
@@ -545,7 +545,7 @@ fn newline_while_recording() {
             lexeme: "+".to_owned()
         })
     );
-    assert_eq!(lexer.is_new_line, false);
+    assert!(!lexer.is_new_line);
     assert_eq!(lexer.next(), None);
 }
 

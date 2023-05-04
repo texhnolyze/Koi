@@ -501,7 +501,7 @@ fn test_golden() {
         let content = fs::read_to_string(path.unwrap().path()).unwrap();
         let (source, want) = {
             let split = content.split("\n#---\n").collect::<Vec<&str>>();
-            (split[0].clone(), split[1].clone())
+            (split[0], split[1])
         };
 
         assert_eq!(output(source, Some(import_root.clone())), want);

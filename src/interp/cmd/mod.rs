@@ -128,9 +128,9 @@ impl Clone for Stream {
     }
 }
 
-impl Into<Stdio> for Stream {
-    fn into(self) -> Stdio {
-        match self {
+impl From<Stream> for Stdio {
+    fn from(val: Stream) -> Self {
+        match val {
             Stream::Inherit => Stdio::inherit(),
             Stream::Null => Stdio::null(),
             Stream::File(file) => Stdio::from(file),
@@ -239,7 +239,7 @@ impl Interpreter {
                     _ => unreachable!(),
                 };
 
-                let file = file.open(&path).unwrap();
+                let file = file.open(path).unwrap();
 
                 match op {
                     CmdOp::Read => stdin = Stream::File(file),
@@ -269,7 +269,7 @@ impl Interpreter {
 
             vals.iter_mut().for_each(|val| {
                 if let Value::String(str) = val {
-                    *str = str.replace("~", &home_dir);
+                    *str = str.replace('~', &home_dir);
                 }
             });
 

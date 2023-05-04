@@ -331,7 +331,7 @@ impl Interpreter {
                 let os_env = self.get_env().os_env();
                 Value::String(self.run_cmd_capture(cmd, os_env, false))
             }
-            Expr::Get(name) => RefCell::borrow(&self.env).get(&name).clone(),
+            Expr::Get(name) => RefCell::borrow(&self.env).get(&name),
             Expr::GetField { base, index } => {
                 let base = self.eval(*base);
                 let index = self.eval(*index);
@@ -556,7 +556,7 @@ impl Interpreter {
 
                 let mut callee_env = mem::replace(&mut self.env, func_env);
 
-                for (param, arg) in params.into_iter().zip(args.into_iter()) {
+                for (param, arg) in params.into_iter().zip(args) {
                     self.get_env_mut().def(param, arg);
                 }
 
@@ -593,10 +593,14 @@ impl Interpreter {
     pub fn set_args(&mut self, args: Vec<String>) {
         self.get_env_mut().def(
             "args".to_string(),
-            Value::Vec(Rc::new(RefCell::new(
-                args.into_iter().map(|s| Value::String(s)).collect(),
-            ))),
+            Value::Vec(Rc::new(RefCell::new(args.into_iter().map(Value::String).collect()))),
         );
+    }
+}
+
+impl Default for Interpreter {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

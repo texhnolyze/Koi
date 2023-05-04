@@ -19,7 +19,7 @@ pub fn print(int: &mut Interpreter, args: Vec<Value>) -> Value {
 
     if let Some(str) = &mut int.collector {
         str.push_str(&res);
-        str.push_str("\n");
+        str.push('\n');
     } else {
         println!("{}", res);
     }
@@ -336,7 +336,7 @@ pub fn vec_2_dict(_int: &mut Interpreter, mut args: Vec<Value>) -> Value {
 
     for tuple in recv.iter() {
         let tuple = if let Value::Vec(tuple) = tuple {
-            RefCell::borrow(&tuple)
+            RefCell::borrow(tuple)
         } else {
             panic!("expected all elements to be vec");
         };
